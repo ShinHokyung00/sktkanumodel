@@ -172,6 +172,7 @@ public class PolicyHandler{
 
 적용 후 REST API 테스트를 통해 정상 동작 확인할 수 있다.
 - 주문(Ordered) 수행의 결과
+
 ![image](https://user-images.githubusercontent.com/86760678/130349926-eff16870-1b96-465b-af2c-399eabbabd01.png)
 ![image](https://user-images.githubusercontent.com/86760678/130349952-376385d7-6ef2-42e6-ae80-6b0dd4d53d79.png)
 
@@ -263,8 +264,9 @@ server:
 ![image](https://user-images.githubusercontent.com/86760678/130350197-5d6071e2-1fb4-42fc-95ca-c44e21619ed5.png)
 
 #동기식 호출(Req/Res 방식)과 Fallback 처리
-- order 서비스의 external/ReturnService.java 내에 결제(paid) 서비스를 호출하기 위하여 FeignClient를 이용하여 Service 대행 인터페이스(Proxy)를 구현
+- order 서비스의 external/PaymentService.java 내에 결제(paid) 서비스를 호출하기 위하여 FeignClient를 이용하여 Service 대행 인터페이스(Proxy)를 구현
 
+### order/external/PaymentService.java
 ```java
 package sktkanumodel.external;
 
@@ -284,4 +286,149 @@ public interface PaymentService {
 }
 
 ```
+
+### Order 서비스의 Order.java
+```java
+package sktkanumodel;
+
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+//import java.util.List;
+//import java.util.Date;
+
+@Entity
+@Table(name="Order_table")
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private Long productId;
+    private Integer qty;
+    private String paymentType;
+    private Long cost;
+    private String productName;
+
+    @PostPersist
+    public void onPostPersist(){
+        Ordered ordered = new Ordered();
+        BeanUtils.copyProperties(this, ordered);
+        ordered.setOrderStatus("Order complete");
+
+        sktkanumodel.external.Payment payment = new sktkanumodel.external.Payment();
+        // mappings goes here
+        payment.setOrderId(this.getId());
+        payment.setProductId(this.getProductId());
+        payment.setProductName(this.getProductName());
+        payment.setPaymentStatus("Not Pay");
+        payment.setQty(this.getQty());
+        payment.setPaymentType(this.getPaymentType());
+        payment.setCost(this.getCost());
+        OrderApplication.applicationContext.getBean(sktkanumodel.external.PaymentService.class)
+            .paid(payment);
+
+        ordered.publishAfterCommit();
+    }
+
+### 이하 생략
+```
+
+- payment서비스를 내림
+
+![image](https://user-images.githubusercontent.com/86760678/130350522-9f175e77-47f6-43c9-84bb-2c08fadd8525.png)
+
+- 주문(order) 요청 및 에러 난 화면 표시
+
+![image](https://user-images.githubusercontent.com/86760678/130350564-86e59bda-2b77-44ee-b872-b5939634ba8b.png)
+
+- payment 서비스 재기동 후 다시 주문 요청
+
+![image](https://user-images.githubusercontent.com/86760678/130350697-2ca7b817-36d6-4f33-80b7-be19a1f4ce7a.png)
+
+- payment 서비스에 주문 대기 상태로 저장 확인
+
+![image](https://user-images.githubusercontent.com/86760678/130350742-87a88566-aad3-41e8-a72e-96cce39fa9c5.png)
+
+
+# 비동기식 호출(Pub/Sub 방식)
+- order 서버스 내 Order.java에서 아래와 같이 서비스 Pub 구현
+
+```java
+
+///
+
+@Entity
+@Table(name="Order_table")
+public class Order {
+
+///
+    @PostRemove
+    public void onPostRemove(){
+        OrderCancelled orderCancelled = new OrderCancelled();
+        BeanUtils.copyProperties(this, orderCancelled);
+        orderCancelled.setOrderStatus("Order Cancelled");
+        orderCancelled.publishAfterCommit();
+    }
+///
+
+```
+
+- payment 서비스 내 PolicyHandler.java에서 아래와 같이 Sub 구현
+
+```java
+///
+
+@Service
+public class PolicyHandler{
+    @Autowired PaymentRepository paymentRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverOrderCancelled_PayCancel(@Payload OrderCancelled orderCancelled)
+    {
+        if(orderCancelled.validate())
+        {
+            System.out.println("\n\n##### listener PayCancel : " + orderCancelled.toJson() + "\n\n");
+            List<Payment> paymanetsList = paymentRepository.findByOrderId(orderCancelled.getId());
+            if(paymanetsList.size()>0) {
+                for(Payment payment : paymanetsList) {
+                    if(payment.getOrderId().equals(orderCancelled.getId())){
+                        System.out.println("##### OrderId :: "+ payment.getId() 
+                                                      +" ... "+ payment.getProductName()+" is Cancelled");
+                        payment.setPaymentType("ORDER CANCEL");
+                        paymentRepository.save(payment);
+                    }
+                }
+            }
+        }
+    }
+///
+}
+
+```
+
+- 비동기식 호출은 다른 서비스가 비정상이여도 이상없이 동작가능하여, payment 서비스에 장애가 나도 order 서비스는 정상 동작을 확인
+
+### payment 서비스 내림
+
+![image](https://user-images.githubusercontent.com/86760678/130352224-7d22d74d-4ebf-4ac5-91b0-b36092219ca4.png)
+
+### 주문 취소
+
+![image](https://user-images.githubusercontent.com/86760678/130352256-ff8aa934-f49c-4f38-a3a8-3774c05fc956.png)
+
+
+
+# CQRS
+
+viewer 인 ordertraces 서비스를 별도로 구현하여 아래와 같이 view가 출력된다.
+
+### 주문 수행 후, ordertraces
+
+![image](https://user-images.githubusercontent.com/86760678/130352429-83e1a1d3-e263-47d7-9760-becfccf9cc96.png)
+
+![image](https://user-images.githubusercontent.com/86760678/130352435-18c4912e-11d7-4368-b0b5-0a8568bc740d.png)
+
+### 주문 취소 수행 후, ordertraces
+
+![image](https://user-images.githubusercontent.com/86760678/130352458-f2b7ad3e-4b00-4fb8-a06e-75e985475c53.png)
 
