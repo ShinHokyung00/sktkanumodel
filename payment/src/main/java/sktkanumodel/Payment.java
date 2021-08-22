@@ -27,8 +27,8 @@ public class Payment {
         paid.publishAfterCommit();
     }
 
-    @PreUpdate
-    public void onPreUpdate(){
+    @PostUpdate
+    public void onPostUpdate(){
         Paid paid = new Paid();
         BeanUtils.copyProperties(this, paid);
         paid.publishAfterCommit();

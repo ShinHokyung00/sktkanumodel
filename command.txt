@@ -10,12 +10,16 @@ kafka-server-start.bat ../../config/server.properties
 # 주문 테스트
 http post localhost:8088/orders productId=1 qty=1 paymentType="cash" cost=1000 productName="Coffee"
 
-# 정상 동작 확인
-http get http://localhost:8088/orderTraces/1
-http get http://localhost:8088/payments/1
+# 정상 동작 확인 (생성된 ID 확인)
+http get http://localhost:8088/orderTraces
+http get http://localhost:8088/payments
 
-# pub / sub 확인
-http delete http://localhost:8088/orders/1
+# 주문 취소
+http delete localhost:8088/orders/(위에서 생성된 ID)
 
-# pay 진행
-http put localhost:8088/payments orderId=1
+# 결제 진행 (기존 데이터 update// 신규 데이터 insert)
+# update
+http put http://localhost:8088/payments/1 cost=1000 orderId=2 paymentStatus="END" paymentType="cash" productId=1 productName="coffee" qty=1
+
+# 배달 pub/sub 확인을 위해 data 저장
+http get http://localhost:8088/deliveries
