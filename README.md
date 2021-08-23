@@ -51,6 +51,7 @@ kubectl create deploy gateway --image=mygroupacr.azurecr.io/kanugateway:latest
 kubectl get all
 ```
 - Kubectl Deploy 결과 확인
+
 ![image](https://user-images.githubusercontent.com/44763296/130466041-12048ad7-228c-4968-b037-3bb309716bde.png)
 
 - Kubernetes에서 서비스 생성하기 (Docker 생성이기에 Port는 8080이며, Gateway는 LoadBalancer로 생성)
