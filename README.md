@@ -107,9 +107,14 @@ readinessProbe:
   periodSeconds: 5
   failureThreshold: 10
 ```
+
 ```
 kubectl apply -f deployment_with_readiness.yml
 ```
+
 - 배포 중 pod가 2개가 뜨고, 새롭게 띄운 pod가 준비될 때까지, 기존 pod가 유지됨을 확인
+![image](https://user-images.githubusercontent.com/44763296/130477984-32b58cbf-a666-4e52-a377-d99c7a1477b7.png)
+
+![image](https://user-images.githubusercontent.com/44763296/130478069-f3b1156e-bddb-48e3-ace9-ee21d3965206.png)
 
 
