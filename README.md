@@ -263,7 +263,7 @@ server:
 ### delivery 서비스의 pom.xml
 ![image](https://user-images.githubusercontent.com/86760678/130350197-5d6071e2-1fb4-42fc-95ca-c44e21619ed5.png)
 
-#동기식 호출(Req/Res 방식)과 Fallback 처리
+# 동기식 호출(Req/Res 방식)과 Fallback 처리
 - order 서비스의 external/PaymentService.java 내에 결제(paid) 서비스를 호출하기 위하여 FeignClient를 이용하여 Service 대행 인터페이스(Proxy)를 구현
 
 ### order/external/PaymentService.java
