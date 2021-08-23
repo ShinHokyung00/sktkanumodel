@@ -440,8 +440,12 @@ viewer 인 ordertraces 서비스를 별도로 구현하여 아래와 같이 view
 
 
 
-
- # 운영 - 테스트 작성@오기열/신호경매니저
+# 운영 - 테스트 작성@오기열/신호경매니저
  
-![image](https://user-images.githubusercontent.com/84756384/130359482-f62dc17e-ca68-48e5-a0a3-40651b0f8f02.png)
+## Deploy/ Pipeline
+각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
 
+### git에서 소스 가져오기
+```
+git clone https://github.com/PARKBYOUNGHWA/sktkanumodel
+```
