@@ -10,7 +10,7 @@
 ```
 git clone https://github.com/PARKBYOUNGHWA/sktkanumodel
 ```
-- Build 및 ACR 에 Push 하기
+- Build 및 ACR 에 Docker Image Push 하기
 ```
 cd ./sktkanumodel
 cd gateway
@@ -21,6 +21,10 @@ cd ../order
 mvn package
 az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanuorder:latest .
 
+cd ../payment
+mvn package
+az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanupayment:latest .
+
 cd ../delivery
 mvn package
 az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanudelivery:latest .
@@ -28,4 +32,25 @@ az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanudelivery:la
 cd ../ordertrace
 mvn package
 az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanuordertrace:latest .
+```
+- Kubernetes Deploy, SVC 생성(yml 이용)
+```
+-- 기본 namespace 설정
+kubectl config set-context --current --namespace=sktkanu
+-- namespace 설정
+kubectl create ns sktkanu
+
+kubectl create deploy order --image=mygroupacr.azurecr.io/kanuorder:latest
+kubectl create deploy payment --image=mygroupacr.azurecr.io/kanupayment:latest
+kubectl create deploy delivery --image=mygroupacr.azurecr.io/kanudelivery:latest
+kubectl create deploy ordertrace --image=mygroupacr.azurecr.io/kanuordertrace:latest
+kubectl create deploy gateway --image=mygroupacr.azurecr.io/kanugateway:latest
+kubectl get all
+
+kubectl expose deploy order --type="ClusterIP" --port=8080
+kubectl expose deploy payment --type="ClusterIP" --port=8080
+kubectl expose deploy delivery --type="ClusterIP" --port=8080
+kubectl expose deploy ordertrace --type="ClusterIP" --port=8080
+kubectl expose deploy gateway --type="LoadBalancer" --port=8080
+kubectl get all
 ```
