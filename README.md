@@ -87,6 +87,7 @@ kubectl apply -f deployment_without_readiness.yml
 ```
 
 - 아래 그림과 같이, Kubernetes가 준비가 되지 않은 delivery pod에 요청을 보내서 siege의 Availability 가 100% 미만으로 떨어짐
+
 ![image](https://user-images.githubusercontent.com/44763296/130476167-1b1eca10-ac7f-4065-86b7-69af9dcd7be5.png)
 
 
