@@ -449,10 +449,22 @@ viewer 인 ordertraces 서비스를 별도로 구현하여 아래와 같이 view
 ```
 git clone https://github.com/PARKBYOUNGHWA/sktkanumodel
 ```
-- Build 및 ACR 에 Docker Build/Push 하기
+- Build 및 ACR 에 Push 하기
 ```
-cd /sktkanumodel
+cd ./sktkanumodel
 cd gateway
 mvn package
 az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanugateway:latest .
+
+cd ../order
+mvn package
+az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanuorder:latest .
+
+cd ../delivery
+mvn package
+az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanudelivery:latest .
+
+cd ../ordertrace
+mvn package
+az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanuordertrace:latest .
 ```
