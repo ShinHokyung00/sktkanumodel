@@ -432,3 +432,16 @@ viewer 인 ordertraces 서비스를 별도로 구현하여 아래와 같이 view
 
 ![image](https://user-images.githubusercontent.com/86760678/130352458-f2b7ad3e-4b00-4fb8-a06e-75e985475c53.png)
 
+
+
+
+
+
+
+
+
+
+ # 운영 - 테스트 작성@오기열/신호경매니저
+ 
+![image](https://user-images.githubusercontent.com/84756384/130359482-f62dc17e-ca68-48e5-a0a3-40651b0f8f02.png)
+
