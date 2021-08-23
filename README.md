@@ -137,8 +137,11 @@ kubectl apply -f deployment_with_readiness.yml
 ```
 
 - order 서비스에 liveness가 적용된 것을 확인
+![image](https://user-images.githubusercontent.com/44763296/130482646-e598d23a-85b5-4e9d-b48b-6c9b99c7955f.png)
 
 
 - order 에 liveness가 발동되었고, 8090 포트에 응답이 없기에 Restart가 발생함
+![image](https://user-images.githubusercontent.com/44763296/130482675-ec20503f-a5d1-4c3d-9261-a89ae7ee17f1.png)
+![image](https://user-images.githubusercontent.com/44763296/130482712-e18cda81-f3c8-47f7-abfc-47188cc423ad.png)
 
 
