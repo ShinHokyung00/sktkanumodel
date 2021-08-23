@@ -65,23 +65,36 @@ kubectl get all
 - Kubectl Expose 결과 확인
 ![image](https://user-images.githubusercontent.com/44763296/130466081-886aab6f-176e-4a1e-8320-84336092dde2.png)
 
+
+
 # 무정지 재배포 (Readiness Probe)
 - 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
+
+- 생성된 siege Pod 안쪽에서 정상작동 확인
+```
+kubectl exec -it siege -- /bin/bash
+siege -c1 -t2S -v http://order:8080/order
+```
+
 - siege 로 배포작업 직전에 워크로드를 모니터링 함
 ```
-siege -c100 -t60S -r10 -v http get http://order:8080/orders
+siege -c1 -t60S -v http://order:8080/orders --delay=1S
 ```
+
 - Readiness가 설정되지 않은 yml 파일로 배포 진행
 ```
 kubectl apply -f deployment_without_readiness.yml
 ```
+
 - 아래 그림과 같이, Kubernetes가 준비가 되지 않은 delivery pod에 요청을 보내서 siege의 Availability 가 100% 미만으로 떨어짐
-- 중간에 socket에 끊겨서 siege 명령어 종료됨 (서비스 정지 발생)
+![image](https://user-images.githubusercontent.com/44763296/130476167-1b1eca10-ac7f-4065-86b7-69af9dcd7be5.png)
+
 
 - 정지 재배포 여부 확인 전에, siege 로 배포작업 직전에 워크로드를 모니터링
 ```
-siege -c100 -t60S -r10 -v http get http://order:8080/orders
+siege -c1 -t60S -v http://order:8080/orders --delay=1S
 ```
+
 - Readiness가 설정된 yml 파일로 배포 진행
 ```
 readinessProbe:
@@ -98,8 +111,4 @@ kubectl apply -f deployment_with_readiness.yml
 ```
 - 배포 중 pod가 2개가 뜨고, 새롭게 띄운 pod가 준비될 때까지, 기존 pod가 유지됨을 확인
 
-- 생성된 siege Pod 안쪽에서 정상작동 확인
-```
-kubectl exec -it siege -- /bin/bash
-siege -c1 -t2S -v http://order:8080/orders
-```
+
