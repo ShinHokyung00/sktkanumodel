@@ -445,7 +445,14 @@ viewer 인 ordertraces 서비스를 별도로 구현하여 아래와 같이 view
 ## Deploy/ Pipeline
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 Azure를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
 
-### git에서 소스 가져오기
+- git에서 소스 가져오기
 ```
 git clone https://github.com/PARKBYOUNGHWA/sktkanumodel
+```
+- Build 및 ACR 에 Docker Build/Push 하기
+```
+cd /sktkanumodel
+cd gateway
+mvn package
+az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanugateway:latest .
 ```
