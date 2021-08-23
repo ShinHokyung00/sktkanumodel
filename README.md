@@ -54,3 +54,9 @@ kubectl expose deploy ordertrace --type="ClusterIP" --port=8080
 kubectl expose deploy gateway --type="LoadBalancer" --port=8080
 kubectl get all
 ```
+- Kubectl Deploy 결과 확인
+![image](https://user-images.githubusercontent.com/44763296/130465872-77e51f64-4861-4b9d-a4b9-57dd5d57a385.png)
+
+
+- Kubernetes에서 서비스 생성하기 (Docker 생성이기에 Port는 8080이며, Gateway는 LoadBalancer로 생성)
+![image](https://user-images.githubusercontent.com/44763296/130465311-47d4802b-795f-45bd-be30-28478a292fe6.png)
