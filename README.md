@@ -50,6 +50,7 @@ kubectl create deploy ordertrace --image=mygroupacr.azurecr.io/kanuordertrace:la
 kubectl create deploy gateway --image=mygroupacr.azurecr.io/kanugateway:latest
 kubectl get all
 ```
+
 - Kubectl Deploy 결과 확인
 
 ![image](https://user-images.githubusercontent.com/44763296/130466041-12048ad7-228c-4968-b037-3bb309716bde.png)
@@ -69,6 +70,29 @@ kubectl get all
 ![image](https://user-images.githubusercontent.com/44763296/130466081-886aab6f-176e-4a1e-8320-84336092dde2.png)
 
 
+- deployment.yml, service.yaml 이용해서 Deployment, Service 생성하기
+```
+cd ./sktkanumodel
+cd gateway
+kubectl apply -f ./kubernetes/deployment.yml
+kubectl apply -f ./kubernetes/service.yaml
+
+cd ../order
+kubectl apply -f ./kubernetes/deployment.yml
+kubectl apply -f ./kubernetes/service.yaml
+
+cd ../payment
+kubectl apply -f ./kubernetes/deployment.yml
+kubectl apply -f ./kubernetes/service.yaml
+
+cd ../delivery
+kubectl apply -f ./kubernetes/deployment.yml
+kubectl apply -f ./kubernetes/service.yaml
+
+cd ../ordertrace
+kubectl apply -f ./kubernetes/deployment.yml
+kubectl apply -f ./kubernetes/service.yaml
+```
 
 # 무정지 재배포 (Readiness Probe)
 - 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
