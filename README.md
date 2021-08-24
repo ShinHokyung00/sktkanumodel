@@ -35,11 +35,6 @@ az acr build --registry mygroupacr --image mygroupacr.azurecr.io/kanuordertrace:
 ```
 - Kubernetes Deploy, SVC 생성(yml 이용)
 ```
--- 기본 namespace 설정
-kubectl config set-context --current --namespace=sktkanu
--- namespace 설정
-kubectl create ns sktkanu
-```
 
 - ACR에서 이미지 가져와서 Kubernetes에서 Deploy하기
 ```
@@ -187,6 +182,39 @@ kubectl get ns istio-cb-ns -o yaml
 
 - namespace label에 istio-injection이 enabled 된 것을 확인한다.
 ![image](https://user-images.githubusercontent.com/44763296/130622542-5873181c-2d0f-4ca8-8508-912b65a13e40.png)
+
+- 이스티오가 설정된 네임스페이스에 배송서비스 배포/ 서비스 생성
+```
+kubectl create deploy delivery --image=ghcr.io/acmexii/delivery:istio-v1 -n istio-cb-ns
+kubectl expose deploy delivery --port=8080 -n istio-cb-ns
+```
+
+- Circuit Breaker 설치
+```
+  apiVersion: networking.istio.io/v1alpha3
+  kind: DestinationRule
+  metadata:
+    name: dr-delivery
+    namespace: istio-cb-ns
+  spec:
+    host: delivery
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 1
+        interval: 1s
+        baseEjectionTime: 3m
+        maxEjectionPercent: 100
+```
+- delivery 서비스의 라우팅 대상 컨테이너 목록에서 1초단위로 체크하여 1번이라도 서버 오류가 발생 시, 3분동안 라우팅에서 제외하며, 모든 컨테이너가 제외될 수 있다.
+- 모든 컨테이너가 제외된 경우, ‘no healthy upstream’ 오류를 리턴한다.
+
+- 배송서비스의 Replica를 3개로 늘인다.
+- Http Client 컨테이너를 설치하고, 접속한다.
+```
+kubectl scale deploy delivery --replicas=3 -n istio-cb-ns
+kubectl apply -f siege.yml -n istio-cb-ns
+kubectl exec -it pod/siege -n istio-cb-ns -- /bin/bash
+```
 
 - 해당 namespace에 기존 서비스들을 재배포한다.
 ```
