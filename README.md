@@ -145,3 +145,12 @@ kubectl apply -f deployment_with_readiness.yml
 ![image](https://user-images.githubusercontent.com/44763296/130482712-e18cda81-f3c8-47f7-abfc-47188cc423ad.png)
 
 
+# 동기식 호출 / 서킷 브레이킹 / 장애격리
+- istio를 활용하여 Circuit Breaker 동작을 확인한다.
+- istio 설치를 먼저 한다. 참고-Lab. Istio Install
+- istio injection이 enabled 된 namespace를 생성한다.
+```
+kubectl create namespace istio-cb-ns
+kubectl label namespace istio-cb-ns istio-injection=enabled
+kubectl get ns istio-cb-ns -o yaml
+```
