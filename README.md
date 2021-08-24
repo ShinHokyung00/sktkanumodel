@@ -213,6 +213,8 @@ kubectl get all -n istio-cb-ns
 
 ```
 kubectl apply -f seige.yml -n istio-cb-ns
+kubectl exec -it siege -c siege -n istio-cb-ns -- /bin/bash
+
 http post http://20.200.229.134:8080/orders productId=1 qty=1 paymentType="cash" cost=1000 productName="Coffee"
 ```
 
@@ -226,10 +228,9 @@ http post http://20.200.229.134:8080/orders productId=1 qty=1 paymentType="cash"
 
 - siege 를 활용하여 User가 1명인 상황에 대해서 요청을 보낸다. (설정값 c1)
 ```
-kubectl apply -f seige.yml -n istio-cb-ns
 kubectl exec -it siege -c siege -n istio-cb-ns -- /bin/bash
 
-siege -c1 -t30S -v --content-type "application/json" 'http://52.141.63.150:8080/reserves POST {"bookNm": "apple", "userNm": "melon", "bookId":1}'
+siege -c1 -t30S -v --content-type "application/json" 'http://20.200.229.134:8080/orders POST {"productId": 1, "qty": 1, "paymentType":"cash", "cost": 1000, "productName": "Coffee"}'
 ```
 
 - 실행결과를 확인하니, Availability가 높게 나옴을 알 수 있다.
@@ -237,7 +238,7 @@ siege -c1 -t30S -v --content-type "application/json" 'http://52.141.63.150:8080/
 
 - 이번에는 User 가 2명인 상황에 대해서 요청을 보내고, 결과를 확인한다.
 ```
-siege -c2 -t30S -v --content-type "application/json" 'http://52.141.63.150:8080/reserves POST {"bookNm": "apple", "userNm": "melon", "bookId":1}'
+siege -c2 -t30S -v --content-type "application/json" 'http://20.200.229.134:8080/orders POST {"productId": 1, "qty": 1, "paymentType":"cash", "cost": 1000, "productName": "Coffee"}'
 ```
 
 - Availability 가 User 가 1명일 때 보다 낮게 나옴을 알 수 있다. Circuit Breaker 가 동작하여 대기중인 요청을 끊은 것을 알 수 있다.
