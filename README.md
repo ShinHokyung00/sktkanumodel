@@ -92,6 +92,8 @@ kubectl apply -f ./kubernetes/service.yaml
 cd ../ordertrace
 kubectl apply -f ./kubernetes/deployment.yml
 kubectl apply -f ./kubernetes/service.yaml
+
+kubectl get all
 ```
 
 # 무정지 재배포 (Readiness Probe)
@@ -161,6 +163,9 @@ kubectl apply -f deployment_with_readiness.yml
 ```
 
 - order 서비스에 liveness가 적용된 것을 확인
+```
+kubectl describe po order
+```
 ![image](https://user-images.githubusercontent.com/44763296/130482646-e598d23a-85b5-4e9d-b48b-6c9b99c7955f.png)
 
 
@@ -183,5 +188,28 @@ kubectl get ns istio-cb-ns -o yaml
 - namespace label에 istio-injection이 enabled 된 것을 확인한다.
 ![image](https://user-images.githubusercontent.com/44763296/130622542-5873181c-2d0f-4ca8-8508-912b65a13e40.png)
 
+- 해당 namespace에 기존 서비스들을 재배포한다.
+```
+kubectl create deploy order --image=mygroupacr.azurecr.io/kanuorder:latest -n istio-cb-ns
+kubectl create deploy payment --image=mygroupacr.azurecr.io/kanupayment:latest -n istio-cb-ns
+kubectl create deploy delivery --image=mygroupacr.azurecr.io/kanudelivery:latest -n istio-cb-ns
+kubectl create deploy ordertrace --image=mygroupacr.azurecr.io/kanuordertrace:latest -n istio-cb-ns
+kubectl create deploy gateway --image=mygroupacr.azurecr.io/kanugateway:latest -n istio-cb-ns
+kubectl get all -n istio-cb-ns
+
+kubectl expose deploy order --type="ClusterIP" --port=8080 -n istio-cb-ns
+kubectl expose deploy payment --type="ClusterIP" --port=8080 -n istio-cb-ns
+kubectl expose deploy delivery --type="ClusterIP" --port=8080 -n istio-cb-ns
+kubectl expose deploy ordertrace --type="ClusterIP" --port=8080 -n istio-cb-ns
+kubectl expose deploy gateway --type="LoadBalancer" --port=8080 -n istio-cb-ns
+kubectl get all -n istio-cb-ns
+```
+
+- 서비스들이 정상적으로 배포되었고, Container가 2개씩 생성된 것을 확인한다. (1개는 서비스 container, 다른 1개는 Sidecar 형태로 생성된 envoy)
 
 
+- gateway의 External IP를 확인하고, 서비스가 정상 작동함을 확인한다.
+
+```
+http post http://52.141.63.150:8080/reserves bookNm=apple userNm=melon bookId=1
+```
