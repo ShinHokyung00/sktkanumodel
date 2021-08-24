@@ -206,10 +206,38 @@ kubectl get all -n istio-cb-ns
 ```
 
 - 서비스들이 정상적으로 배포되었고, Container가 2개씩 생성된 것을 확인한다. (1개는 서비스 container, 다른 1개는 Sidecar 형태로 생성된 envoy)
+![image](https://user-images.githubusercontent.com/44763296/130626030-dc84f47f-e9b8-4d46-84f5-1f3b9f740773.png)
 
 
 - gateway의 External IP를 확인하고, 서비스가 정상 작동함을 확인한다.
 
 ```
-http post http://52.141.63.150:8080/reserves bookNm=apple userNm=melon bookId=1
+kubectl apply -f seige.yml -n istio-cb-ns
+http post http://20.200.229.134:8080/orders productId=1 qty=1 paymentType="cash" cost=1000 productName="Coffee"
 ```
+
+
+- Circuit Breaker 설정을 위해 아래와 같은 Destination Rule을 생성한다.
+
+- Pending Request가 많을수록 오랫동안 쌓인 요청은 Response Time이 증가하게 되므로, 적절한 대기 쓰레드 풀을 적용하기 위해 connection pool을 설정했다.
+
+- 설정된 Destinationrule을 확인한다.
+
+
+- siege 를 활용하여 User가 1명인 상황에 대해서 요청을 보낸다. (설정값 c1)
+```
+kubectl apply -f seige.yml -n istio-cb-ns
+kubectl exec -it siege -c siege -n istio-cb-ns -- /bin/bash
+
+siege -c1 -t30S -v --content-type "application/json" 'http://52.141.63.150:8080/reserves POST {"bookNm": "apple", "userNm": "melon", "bookId":1}'
+```
+
+- 실행결과를 확인하니, Availability가 높게 나옴을 알 수 있다.
+
+
+- 이번에는 User 가 2명인 상황에 대해서 요청을 보내고, 결과를 확인한다.
+```
+siege -c2 -t30S -v --content-type "application/json" 'http://52.141.63.150:8080/reserves POST {"bookNm": "apple", "userNm": "melon", "bookId":1}'
+```
+
+- Availability 가 User 가 1명일 때 보다 낮게 나옴을 알 수 있다. Circuit Breaker 가 동작하여 대기중인 요청을 끊은 것을 알 수 있다.
